@@ -1,0 +1,42 @@
+# Video and image files (large, user-specific)
+input/
+output/
+output_sbs.mp4
+work/
+
+# Docker development environment (local setup)
+.docker-dev/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# Claude Code (user-specific config and memory)
+CLAUDE.md
+.claude/
+
+# Design iteration artifacts
+.local_docs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+
+# MiDaS model cache (downloaded on first run)
+# Lives in ~/.cache/torch/hub/ by default
