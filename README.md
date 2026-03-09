@@ -117,6 +117,13 @@ uv run python -m src.encode input/movie.mp4 \
 
 ---
 
+## Sample Output
+
+<!-- Add a screenshot or GIF showing before/after or a stereo SBS frame -->
+*Coming soon — run the pipeline on any video and the side-by-side stereo output is immediately playable in VR.*
+
+---
+
 ## How It Works
 
 ```text
@@ -158,7 +165,7 @@ stereo3d/
 
 ## Required Software
 
-- **Python 3.14+**
+- **Python 3.10+**
 - **uv** — `curl -Ls https://astral.sh/uv/install.sh | sh`
 - **FFmpeg** — `brew install ffmpeg` (Mac) or `sudo apt install ffmpeg` (Linux)
 - **Blender** *(optional)* — [blender.org/download](https://www.blender.org/download/)

@@ -1,7 +1,6 @@
 # Video and image files (large, user-specific)
 input/
 output/
-output_sbs.mp4
 work/
 
 # Docker development environment (local setup)
