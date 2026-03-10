@@ -5,10 +5,10 @@ on depth to create a synthetic second eye view. Uses reverse (backward)
 warping via cv2.remap() so every output pixel gets a value — no holes.
 """
 
+import multiprocessing
 import cv2
 import numpy as np
 import os
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from tqdm import tqdm
 
@@ -128,11 +128,17 @@ def synthesize_all(
         for frame_path in frame_files
     ]
 
+    # Always use "spawn" — fork() deadlocks on macOS because both PyTorch
+    # (GPU threads) and OpenCV (internal threading) leave locks that get
+    # inherited as permanently held by ghost threads. spawn() is safe
+    # because each worker starts clean. We use imap_unordered with a
+    # persistent Pool so workers start once, import cv2 once, then chew
+    # through frames without respawning.
+    ctx = multiprocessing.get_context("spawn")
+
     count = 0
-    with ProcessPoolExecutor(max_workers=workers) as pool:
-        # chunksize > 1 reduces IPC overhead when there are thousands of frames
-        chunksize = max(1, len(work_items) // (workers * 4))
-        results = pool.map(_process_single_frame, work_items, chunksize=chunksize)
+    with ctx.Pool(processes=workers) as pool:
+        results = pool.imap_unordered(_process_single_frame, work_items, chunksize=10)
         for success in tqdm(results, total=len(work_items), desc=f"Synthesizing stereo ({workers} workers)"):
             if success:
                 count += 1

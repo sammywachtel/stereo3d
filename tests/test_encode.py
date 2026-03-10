@@ -9,6 +9,23 @@ from src.encode import encode_video
 from tests.conftest import NUM_FRAMES
 
 
+def _mock_popen(returncode=0, stderr_lines=None):
+    """Create a mock Popen that simulates FFmpeg's stderr output.
+
+    FFmpeg writes progress lines like 'frame=  10 fps=30.0 ...' to stderr.
+    We feed these to the progress bar parser so it doesn't hang.
+    """
+    if stderr_lines is None:
+        stderr_lines = [f"frame=  {NUM_FRAMES} fps=30.0\n"]
+
+    mock_proc = MagicMock()
+    mock_proc.stderr = iter(stderr_lines)
+    mock_proc.stdout = iter([])
+    mock_proc.wait.return_value = returncode
+    mock_proc.returncode = returncode
+    return mock_proc
+
+
 class TestEncodeValidation:
     """Input validation — these don't need ffmpeg installed."""
 
@@ -29,46 +46,43 @@ class TestEncodeValidation:
 class TestEncodeCommand:
     """Verify the ffmpeg command is built correctly without actually running it."""
 
-    @patch("subprocess.run")
+    @patch("src.encode.subprocess.Popen")
     @patch("src.encode.shutil.which", return_value="/usr/bin/ffmpeg")
-    def test_basic_command_structure(self, _which, mock_run, synthetic_stereo_frames: Path, tmp_path: Path):
-        mock_run.return_value = MagicMock(returncode=0)
+    def test_basic_command_structure(self, _which, mock_popen, synthetic_stereo_frames: Path, tmp_path: Path):
+        mock_popen.return_value = _mock_popen()
         output_path = tmp_path / "out.mp4"
-
-        # Create a fake output so stat() doesn't blow up
         output_path.write_bytes(b"fake video data")
 
         encode_video(synthetic_stereo_frames, output_path, fps=30.0, crf=20)
 
-        cmd = mock_run.call_args[0][0]
+        cmd = mock_popen.call_args[0][0]
         assert cmd[0] == "ffmpeg"
         assert "-framerate" in cmd
         assert "30.0" in cmd[cmd.index("-framerate") + 1]
         assert "-crf" in cmd
         assert "20" in cmd[cmd.index("-crf") + 1]
 
-    @patch("subprocess.run")
+    @patch("src.encode.subprocess.Popen")
     @patch("src.encode.shutil.which", return_value="/usr/bin/ffmpeg")
-    def test_audio_source_included(self, _which, mock_run, synthetic_stereo_frames: Path, tmp_path: Path):
-        mock_run.return_value = MagicMock(returncode=0)
+    def test_audio_source_included(self, _which, mock_popen, synthetic_stereo_frames: Path, tmp_path: Path):
+        mock_popen.return_value = _mock_popen()
         output_path = tmp_path / "out.mp4"
         output_path.write_bytes(b"fake")
 
-        # Create a fake audio source file
         audio = tmp_path / "source.mp4"
         audio.write_bytes(b"fake audio")
 
         encode_video(synthetic_stereo_frames, output_path, audio_source=audio)
 
-        cmd = mock_run.call_args[0][0]
+        cmd = mock_popen.call_args[0][0]
         assert str(audio) in cmd
         assert "-c:a" in cmd
         assert "copy" in cmd
 
-    @patch("subprocess.run")
+    @patch("src.encode.subprocess.Popen")
     @patch("src.encode.shutil.which", return_value="/usr/bin/ffmpeg")
-    def test_raises_on_ffmpeg_failure(self, _which, mock_run, synthetic_stereo_frames: Path, tmp_path: Path):
-        mock_run.return_value = MagicMock(returncode=1, stderr="something went wrong")
+    def test_raises_on_ffmpeg_failure(self, _which, mock_popen, synthetic_stereo_frames: Path, tmp_path: Path):
+        mock_popen.return_value = _mock_popen(returncode=1, stderr_lines=["Error: something went wrong\n"])
 
         with pytest.raises(RuntimeError, match="FFmpeg failed"):
             encode_video(synthetic_stereo_frames, tmp_path / "out.mp4")

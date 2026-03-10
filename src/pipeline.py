@@ -111,11 +111,22 @@ if __name__ == "__main__":
         default="work",
         help="Working directory for intermediate files (default: work)",
     )
+    parser.add_argument(
+        "--stream", action="store_true",
+        help="Streaming mode — no intermediate files, much less disk space",
+    )
 
     args = parser.parse_args()
 
-    run_pipeline(
-        video_path=args.video_path,
-        output_path=args.output,
-        work_dir=args.work_dir,
-    )
+    if args.stream:
+        from src.stream import run_streaming
+        run_streaming(
+            video_path=args.video_path,
+            output_path=args.output,
+        )
+    else:
+        run_pipeline(
+            video_path=args.video_path,
+            output_path=args.output,
+            work_dir=args.work_dir,
+        )

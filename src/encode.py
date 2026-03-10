@@ -1,8 +1,10 @@
 """Video encoding — assembles stereo frames into a playable SBS video via FFmpeg."""
 
+import re
 import subprocess
 import shutil
 from pathlib import Path
+from tqdm import tqdm
 
 
 def encode_video(
@@ -66,9 +68,25 @@ def encode_video(
 
     cmd.append(str(output_path))
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg failed:\n{result.stderr}")
+    # Stream stderr so we can parse FFmpeg's frame counter in real time.
+    # FFmpeg spits out lines like "frame=  123 fps= 45.2 ..." to stderr.
+    total_frames = len(frame_files)
+    process = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+
+    frame_re = re.compile(r"frame=\s*(\d+)")
+    stderr_lines = []
+
+    with tqdm(total=total_frames, desc="Encoding video", unit="frame") as pbar:
+        for line in process.stderr:
+            stderr_lines.append(line)
+            match = frame_re.search(line)
+            if match:
+                current = int(match.group(1))
+                pbar.update(current - pbar.n)
+
+    process.wait()
+    if process.returncode != 0:
+        raise RuntimeError(f"FFmpeg failed:\n{''.join(stderr_lines)}")
 
     size_mb = output_path.stat().st_size / (1024 * 1024)
     print(f"Encoded to {output_path} ({size_mb:.1f} MB)")
