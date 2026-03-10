@@ -6,11 +6,11 @@ or model weights in the test suite. Everything is 16x16 pixels and
 around for actual depth estimation.
 """
 
+from pathlib import Path
+
 import cv2
 import numpy as np
 import pytest
-from pathlib import Path
-
 
 # -- Dimensions for synthetic test data --
 # Small enough to be instant, large enough that OpenCV doesn't choke

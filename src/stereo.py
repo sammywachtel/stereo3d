@@ -6,10 +6,11 @@ warping via cv2.remap() so every output pixel gets a value — no holes.
 """
 
 import multiprocessing
-import cv2
-import numpy as np
 import os
 from pathlib import Path
+
+import cv2
+import numpy as np
 from tqdm import tqdm
 
 
@@ -151,8 +152,12 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Synthesize stereo SBS frames from frame/depth pairs.")
-    parser.add_argument("-w", "--work-dir", default="work", help="Working directory (reads frames/ and depth/, writes stereo_frames/)")
-    parser.add_argument("--max-disparity", type=float, default=15.0, help="Max pixel shift for stereo effect (default: 15.0)")
+    parser.add_argument(
+        "-w", "--work-dir", default="work", help="Working directory (reads frames/ and depth/)",
+    )
+    parser.add_argument(
+        "--max-disparity", type=float, default=15.0, help="Max pixel shift for stereo effect",
+    )
 
     args = parser.parse_args()
 

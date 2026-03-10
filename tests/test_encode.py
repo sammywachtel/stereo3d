@@ -1,9 +1,10 @@
 """Tests for video encoding — the FFmpeg wrapper stage."""
 
 import shutil
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from src.encode import encode_video
 from tests.conftest import NUM_FRAMES
@@ -30,9 +31,8 @@ class TestEncodeValidation:
     """Input validation — these don't need ffmpeg installed."""
 
     def test_raises_without_ffmpeg(self, tmp_path: Path):
-        with patch("shutil.which", return_value=None):
-            with pytest.raises(RuntimeError, match="FFmpeg not found"):
-                encode_video(tmp_path, tmp_path / "out.mp4")
+        with patch("shutil.which", return_value=None), pytest.raises(RuntimeError, match="FFmpeg not found"):
+            encode_video(tmp_path, tmp_path / "out.mp4")
 
     @patch("shutil.which", return_value="/usr/bin/ffmpeg")
     def test_raises_on_empty_frames_dir(self, _mock, tmp_path: Path):
@@ -111,7 +111,7 @@ class TestEncodeIntegration:
         but ffmpeg should handle that gracefully with the '?' stream selector)."""
         output_path = tmp_path / "test_with_audio.mp4"
 
-        result = encode_video(
+        encode_video(
             synthetic_stereo_frames, output_path,
             fps=1.0, crf=28, audio_source=synthetic_video,
         )

@@ -6,9 +6,10 @@ verify the orchestrator's path logic and error handling.
 """
 
 import shutil
-import pytest
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 from src.pipeline import run_pipeline
 from tests.test_depth import mock_load_midas
@@ -27,7 +28,7 @@ class TestPipelineValidation:
 
         # We just want to check the path logic, so patch everything
         # and let it fail at extraction — that's fine
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             run_pipeline(video_path, work_dir=tmp_path / "work")
 
         # The output dir should have been created

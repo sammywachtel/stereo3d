@@ -6,9 +6,9 @@ This is a starting point — extend it for convergence adjustments,
 depth-based fog, titles, or whatever post-processing you need.
 """
 
-import bpy
-import os
 from pathlib import Path
+
+import bpy
 
 
 def setup_compositor(

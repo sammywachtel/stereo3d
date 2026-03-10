@@ -2,8 +2,9 @@
 
 import json
 import shutil
-import cv2
 from pathlib import Path
+
+import cv2
 from tqdm import tqdm
 
 
@@ -77,7 +78,7 @@ def _check_resume(output_dir: Path, video_path: Path, meta: dict) -> int | None:
     pct = (last_frame / meta["total_frames"]) * 100
     print(f"\nFound {last_frame}/{meta['total_frames']} frames ({pct:.0f}%) from a previous run.")
     print(f"  [r] Resume from frame {last_frame + 1}")
-    print(f"  [s] Start over (delete existing frames)")
+    print("  [s] Start over (delete existing frames)")
 
     while True:
         choice = input("Choice [r/s]: ").strip().lower()
@@ -158,7 +159,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Extract frames from a video file.")
     parser.add_argument("video_path", help="Input video file")
-    parser.add_argument("-w", "--work-dir", default="work", help="Working directory (frames saved to <work-dir>/frames/)")
+    parser.add_argument(
+        "-w", "--work-dir", default="work", help="Working directory (frames saved to <work-dir>/frames/)",
+    )
 
     args = parser.parse_args()
 

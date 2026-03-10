@@ -1,9 +1,10 @@
 """Video encoding — assembles stereo frames into a playable SBS video via FFmpeg."""
 
 import re
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
+
 from tqdm import tqdm
 
 
@@ -101,7 +102,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("audio_source", nargs="?", default=None, help="Original video to copy audio from")
     parser.add_argument("-o", "--output", default="output_sbs.mp4", help="Output video path (default: output_sbs.mp4)")
-    parser.add_argument("-w", "--work-dir", default="work", help="Working directory containing stereo_frames/ (default: work)")
+    parser.add_argument(
+        "-w", "--work-dir", default="work", help="Working directory containing stereo_frames/",
+    )
     parser.add_argument("--fps", type=float, default=24.0, help="Output framerate (default: 24.0)")
     parser.add_argument("--crf", type=int, default=18, help="H.264 quality, lower=better (default: 18)")
 

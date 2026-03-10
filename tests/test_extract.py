@@ -1,19 +1,19 @@
 """Tests for frame extraction — the boring-but-essential first stage."""
 
-import json
-import cv2
-import pytest
 from pathlib import Path
 from unittest.mock import patch
 
+import cv2
+import pytest
+
 from src.extract import (
-    _video_metadata,
-    _save_metadata,
-    _load_metadata,
     _find_last_frame,
+    _load_metadata,
+    _save_metadata,
+    _video_metadata,
     extract_frames,
 )
-from tests.conftest import FRAME_W, FRAME_H, NUM_FRAMES
+from tests.conftest import FRAME_H, FRAME_W, NUM_FRAMES
 
 
 class TestVideoMetadata:
@@ -107,6 +107,6 @@ class TestExtractFrames:
         assert len(list(output_dir.glob("frame_*.png"))) == 0
 
     def test_raises_on_missing_video(self, tmp_path: Path):
-        with pytest.raises(RuntimeError, match="Cannot open video"):
-            with patch("src.extract._check_resume", return_value=None):
-                extract_frames(tmp_path / "nonexistent.mp4", tmp_path / "frames")
+        with pytest.raises(RuntimeError, match="Cannot open video"), \
+             patch("src.extract._check_resume", return_value=None):
+            extract_frames(tmp_path / "nonexistent.mp4", tmp_path / "frames")

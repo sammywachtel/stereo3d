@@ -4,13 +4,14 @@ synthesize_stereo_pair is a pure function (image + depth → SBS image),
 which makes it the most naturally testable module in the pipeline.
 """
 
+from pathlib import Path
+
 import cv2
 import numpy as np
 import pytest
-from pathlib import Path
 
-from src.stereo import synthesize_stereo_pair, _process_single_frame, synthesize_all
-from tests.conftest import FRAME_W, FRAME_H, NUM_FRAMES
+from src.stereo import _process_single_frame, synthesize_all, synthesize_stereo_pair
+from tests.conftest import FRAME_H, FRAME_W, NUM_FRAMES
 
 
 class TestSynthesizeSterePair:

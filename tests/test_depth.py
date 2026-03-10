@@ -7,15 +7,16 @@ did that. We're testing our pipeline code: batching, normalization,
 temporal smoothing, and file I/O.
 """
 
+from pathlib import Path
+from unittest.mock import patch
+
 import cv2
 import numpy as np
 import pytest
 import torch
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 from src.depth import estimate_depth
-from tests.conftest import FRAME_W, FRAME_H, NUM_FRAMES
+from tests.conftest import NUM_FRAMES
 
 
 class FakeMiDaS(torch.nn.Module):

@@ -1,9 +1,10 @@
 """Depth estimation using MiDaS (via torch.hub)."""
 
+from pathlib import Path
+
 import cv2
 import numpy as np
 import torch
-from pathlib import Path
 from tqdm import tqdm
 
 
@@ -27,10 +28,7 @@ def load_midas(model_type: str = "DPT_Large") -> tuple:
     model.eval()
 
     transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
-    if model_type in ("DPT_Large", "DPT_Hybrid"):
-        transform = transforms.dpt_transform
-    else:
-        transform = transforms.small_transform
+    transform = transforms.dpt_transform if model_type in ("DPT_Large", "DPT_Hybrid") else transforms.small_transform
 
     return model, transform, device
 

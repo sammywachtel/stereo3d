@@ -10,16 +10,15 @@ frame 15,000 you start over. Use the regular pipeline if you need that
 safety net, use this one when disk space is tight.
 """
 
-import re
 import shutil
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-from pathlib import Path
 from tqdm import tqdm
 
 from src.depth import load_midas
@@ -79,7 +78,7 @@ def run_streaming(
     sbs_width = width * 2
 
     print(f"Video: {width}x{height} @ {fps:.1f} fps, {total_frames} frames")
-    print(f"Streaming mode — no intermediate files written to disk")
+    print("Streaming mode — no intermediate files written to disk")
 
     # Load MiDaS
     model, transform, device = load_midas(model_type)

@@ -10,10 +10,10 @@ import sys
 import time
 from pathlib import Path
 
-from src.extract import extract_frames
 from src.depth import estimate_depth
-from src.stereo import synthesize_all
 from src.encode import encode_video
+from src.extract import extract_frames
+from src.stereo import synthesize_all
 
 
 def run_pipeline(
