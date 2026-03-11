@@ -81,6 +81,30 @@ class TestEncodeCommand:
 
     @patch("src.encode.subprocess.Popen")
     @patch("src.encode.shutil.which", return_value="/usr/bin/ffmpeg")
+    def test_quest_mode_adds_profile_and_metadata(
+        self, _which, mock_popen, synthetic_stereo_frames: Path, tmp_path: Path,
+    ):
+        mock_popen.return_value = _mock_popen()
+        output_path = tmp_path / "out.mp4"
+        output_path.write_bytes(b"fake video data")
+
+        encode_video(synthetic_stereo_frames, output_path, quest=True)
+
+        cmd = mock_popen.call_args[0][0]
+        # High profile for Quest hardware decoder
+        assert "-profile:v" in cmd
+        assert cmd[cmd.index("-profile:v") + 1] == "high"
+        # Level 5.1 for 4K support
+        assert "-level" in cmd
+        assert cmd[cmd.index("-level") + 1] == "5.1"
+        # High bitrate cap to discourage DLNA transcoding
+        assert "-maxrate" in cmd
+        # SBS 3D metadata for auto-detection
+        assert "-metadata:s:v" in cmd
+        assert "stereo_mode=left_right" in cmd
+
+    @patch("src.encode.subprocess.Popen")
+    @patch("src.encode.shutil.which", return_value="/usr/bin/ffmpeg")
     def test_raises_on_ffmpeg_failure(self, _which, mock_popen, synthetic_stereo_frames: Path, tmp_path: Path):
         mock_popen.return_value = _mock_popen(returncode=1, stderr_lines=["Error: something went wrong\n"])
 

@@ -14,6 +14,7 @@ def encode_video(
     fps: float = 24.0,
     crf: int = 18,
     audio_source: str | Path | None = None,
+    quest: bool = False,
 ) -> Path:
     """Encode a directory of numbered PNGs into an H.264 MP4.
 
@@ -22,6 +23,11 @@ def encode_video(
 
     If audio_source is provided, the audio track is copied straight from
     the original video — no re-encoding, no quality loss.
+
+    If quest=True, encodes with settings optimized for Meta Quest 2/3
+    playback: High profile for hardware decode, high bitrate to
+    discourage DLNA servers from transcoding, and SBS 3D metadata so
+    VR players auto-detect the stereo format.
     """
     if not shutil.which("ffmpeg"):
         raise RuntimeError(
@@ -38,7 +44,10 @@ def encode_video(
     if not frame_files:
         raise FileNotFoundError(f"No frames found in {frames_dir}")
 
-    print(f"Encoding {len(frame_files)} frames at {fps} fps (CRF {crf})...")
+    if quest:
+        print(f"Encoding {len(frame_files)} frames at {fps} fps (Quest mode, CRF {crf})...")
+    else:
+        print(f"Encoding {len(frame_files)} frames at {fps} fps (CRF {crf})...")
 
     cmd = [
         "ffmpeg",
@@ -61,11 +70,30 @@ def encode_video(
         "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
     ]
 
+    if quest:
+        # Quest 2/3 hardware-decodes High profile Level 5.1 natively.
+        # maxrate/bufsize cap the bitrate high enough for quality but
+        # within what the XR2 chip can handle. This also tells DLNA
+        # servers like UMS "this stream is already optimized, don't
+        # transcode it into mush."
+        cmd += [
+            "-profile:v", "high",
+            "-level", "5.1",
+            "-maxrate", "60M",
+            "-bufsize", "120M",
+        ]
+
     if audio_source is not None and Path(audio_source).exists():
         # Copy audio as-is — no re-encode, no sync drift
         cmd += ["-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0?"]
         # shortest: stop when the shorter stream ends (frames or audio)
         cmd += ["-shortest"]
+
+    if quest:
+        # Tag the file as side-by-side 3D so VR players (Skybox, Oculus
+        # Gallery, etc.) auto-detect the format instead of making the
+        # user hunt through menus every time.
+        cmd += ["-metadata:s:v", "stereo_mode=left_right"]
 
     cmd.append(str(output_path))
 
@@ -107,6 +135,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("--fps", type=float, default=24.0, help="Output framerate (default: 24.0)")
     parser.add_argument("--crf", type=int, default=18, help="H.264 quality, lower=better (default: 18)")
+    parser.add_argument(
+        "--quest", action="store_true",
+        help="Optimize for Meta Quest 2/3: High profile, high bitrate, SBS metadata",
+    )
 
     args = parser.parse_args()
 
@@ -116,4 +148,5 @@ if __name__ == "__main__":
         fps=args.fps,
         crf=args.crf,
         audio_source=args.audio_source,
+        quest=args.quest,
     )

@@ -24,6 +24,7 @@ def run_pipeline(
     max_disparity: float = 15.0,
     fps: float | None = None,
     crf: int = 18,
+    quest: bool = False,
 ):
     """Convert a 2D video to stereoscopic 3D side-by-side format.
 
@@ -35,6 +36,7 @@ def run_pipeline(
         max_disparity: Maximum pixel shift for stereo effect (12-18 recommended)
         fps: Output framerate (None = match input video)
         crf: H.264 quality (lower = better, 18 = visually lossless)
+        quest: Optimize encoding for Meta Quest 2/3 headsets
     """
     video_path = Path(video_path)
     work_dir = Path(work_dir)
@@ -85,7 +87,7 @@ def run_pipeline(
 
     # Stage 4: Video encoding
     print("\n=== Stage 4/4: Video Encoding ===")
-    encode_video(stereo_dir, output_path, fps, crf, audio_source=video_path)
+    encode_video(stereo_dir, output_path, fps, crf, audio_source=video_path, quest=quest)
 
     elapsed = time.time() - start
     minutes = int(elapsed // 60)
@@ -115,6 +117,10 @@ if __name__ == "__main__":
         "--stream", action="store_true",
         help="Streaming mode — no intermediate files, much less disk space",
     )
+    parser.add_argument(
+        "--quest", action="store_true",
+        help="Optimize encoding for Meta Quest 2/3 headsets",
+    )
 
     args = parser.parse_args()
 
@@ -129,4 +135,5 @@ if __name__ == "__main__":
             video_path=args.video_path,
             output_path=args.output,
             work_dir=args.work_dir,
+            quest=args.quest,
         )

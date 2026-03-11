@@ -33,6 +33,7 @@ uv run python -m src.pipeline <video> [options]
 |--------|---------|-------------|
 | `-o, --output` | `output/<name>_sbs.mp4` | Output video path |
 | `-w, --work-dir` | `work` | Working directory for intermediate files |
+| `--quest` | off | Optimize encoding for Meta Quest 2/3 headsets |
 
 ### Examples
 
@@ -45,6 +46,9 @@ uv run python -m src.pipeline input/movie.mp4 -o ~/Desktop/my_3d_movie.mp4
 
 # Custom work directory (useful for external drives or multiple jobs)
 uv run python -m src.pipeline input/movie.mp4 -w /Volumes/external/work
+
+# Optimized for Quest 2/3 playback
+uv run python -m src.pipeline input/movie.mp4 --quest
 
 # Both
 uv run python -m src.pipeline input/movie.mp4 -o /tmp/result.mp4 -w /tmp/work
@@ -105,6 +109,7 @@ Assembles stereo frames from `<work-dir>/stereo_frames/` into a final H.264 MP4.
 | `-o, --output` | `output_sbs.mp4` | Output video path |
 | `--fps` | `24.0` | Output framerate |
 | `--crf` | `18` | H.264 quality — lower is better, 18 is visually lossless |
+| `--quest` | off | Optimize for Meta Quest 2/3 (High profile, high bitrate, SBS metadata) |
 
 ### Example: Re-run encode after tweaking settings
 
@@ -113,6 +118,9 @@ uv run python -m src.encode input/movie.mp4 \
   -o /Volumes/external/movie_sbs.mp4 \
   -w /Volumes/external/work \
   --crf 15
+
+# Quest-optimized encode
+uv run python -m src.encode input/movie.mp4 -o output_sbs.mp4 --quest
 ```
 
 ---
@@ -195,6 +203,31 @@ blender -b -P blender/stereo_composite.py
 | Clip Length | 10–20 seconds |
 | MiDaS Model | `DPT_Hybrid` (fast) or `DPT_Large` (better quality) |
 | Max Disparity | 12–18 px |
+
+---
+
+## VR Headset Playback
+
+### Meta Quest 2/3
+
+Use `--quest` when encoding to get the best results on Quest hardware:
+
+```bash
+uv run python -m src.pipeline input/movie.mp4 --quest
+```
+
+This sets H.264 High profile (Level 5.1) for hardware decoding, caps the bitrate high enough to discourage DLNA servers from transcoding, and embeds SBS 3D metadata so VR players auto-detect the stereo format.
+
+**Playback options (best to worst quality):**
+
+1. **Local playback** *(recommended)* — Copy the MP4 to the Quest via USB or SideQuest, play with Skybox VR Player or Oculus Gallery (set to 3D → Side-by-Side). No quality loss.
+2. **DLNA streaming** — Use a media server like Universal Media Server. Make sure transcoding is disabled (Settings → "Send as-is") or the server will re-encode and degrade quality.
+
+**Note:** Quest 2's per-eye resolution is 1832×1920 — not super sharp by modern standards. If the output looks soft, that's likely the headset's display rather than the encode.
+
+### Apple Vision Pro
+
+The default encode (no `--quest` flag) works well. AirPlay or transfer the file directly. Vision Pro's higher resolution makes the SBS output look noticeably sharper than Quest.
 
 ---
 
